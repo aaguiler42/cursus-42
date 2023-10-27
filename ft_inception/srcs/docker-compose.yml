@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    ports:
+      - 443:443
+    volumes:
+      - type: volume
+        source: wp
+        target: /var/www/wp
+    networks:
+      - networkIncep
+    depends_on:
+      - wordpress
+    restart: always
+
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    volumes:
+      - type: volume
+        source: wp
+        target: /var/www/wp
+    depends_on:
+      - mariadb
+    env_file:
+      - ./.env
+    networks:
+      - networkIncep
+    restart: always
+  
+  mariadb:
+    container_name: mariadb
+    build: 
+      context: ./requirements/mariadb
+      args:
+        - MYSQL_ROOT_USER=${MYSQL_ROOT_USER}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - type: volume
+        source: db
+        target: /var/lib/mysql
+    env_file:
+      - ./.env
+    networks:
+      - networkIncep
+    restart: always
+
+volumes:
+  wp:
+  db:
+
+networks:
+  networkIncep:
